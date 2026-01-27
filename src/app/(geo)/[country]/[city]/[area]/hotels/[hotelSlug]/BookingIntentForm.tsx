@@ -3,22 +3,24 @@
 import { useState } from "react";
 import { v4 as uuid } from "uuid";
 import { BookingIntent } from "../../../../../../../../core/domain/bookingIntent";
+import { Hotel } from "../../../../../../../../core/domain/hotel";
+import { PriceQuote } from "../../../../../../../../core/domain/priceQuote";
 import { checkAvailabilityForIntent } from "../../../../../../../../core/services/checkAvailabilityForIntent";
 import { createHold } from "../../../../../../../../core/services/createHold";
-import { Hotel } from "../../../../../../../../core/domain/hotel";
+import { calculatePriceQuote } from "../../../../../../../../core/services/calculatePriceQuote";
 
-
-export function BookingIntentForm({ hotel }: { hotel: Hotel}) {
+export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
   const [message, setMessage] = useState<string | null>(null);
+  const [quote, setQuote] = useState<PriceQuote | null>(null);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const bookingIntentId = uuid();
 
+    // 1️⃣ Intent (ephemeral)
     const intent: BookingIntent = {
       bookingIntentId,
-      id: hotel.id
       hotelId: hotel.id,
       hotelSlug: hotel.slug,
       checkInDate: "2026-04-01",
@@ -28,13 +30,14 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel}) {
       source: "web",
     };
 
+    // 2️⃣ Intelligence
     const availability = checkAvailabilityForIntent(intent, hotel);
-
     if (availability.status !== "AVAILABLE") {
       setMessage(`Unavailable: ${availability.reason}`);
       return;
     }
 
+    // 3️⃣ Transaction Control (Hold)
     const hold = createHold({
       holdId: uuid(),
       bookingIntentId,
@@ -42,16 +45,33 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel}) {
       roomsHeld: intent.rooms,
     });
 
-    setMessage(`Rooms held for you for 10 minutes. Hold ID: ${hold.holdId}`);
+    // 4️⃣ Value Capture (Snapshot Pricing)
+    const priceQuote = calculatePriceQuote({
+      intent,
+      hotel,
+      holdExpiresAt: hold.expiresAt,
+    });
+
+    setQuote(priceQuote);
+    setMessage(
+      `Rooms held! Total: ${priceQuote.currency} ₦${priceQuote.total.toLocaleString()}`,
+    );
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-6 space-y-4">
-      <button className="px-6 py-3 rounded bg-black text-white">
-        Hold Rooms
+    <form onSubmit={onSubmit} className="mt-6 p-4 border rounded-lg space-y-4">
+      <button className="w-full px-6 py-3 rounded bg-black text-white font-bold">
+        Confirm & Hold Rooms
       </button>
 
-      {message && <p className="text-sm mt-2">{message}</p>}
+      {message && (
+        <div className="bg-gray-50 p-3 rounded text-sm">
+          <p className="font-medium text-black">{message}</p>
+          {quote && (
+            <p className="text-gray-500 mt-1">Quote ID: {quote.quoteId}</p>
+          )}
+        </div>
+      )}
     </form>
   );
 }
