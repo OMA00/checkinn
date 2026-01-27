@@ -11,6 +11,7 @@ export const MOCK_HOTELS: Hotel[] = [
     rating: 4.8,
     priceFrom: 45000,
     isVerified: true,
+    roomsAvailable: 10,
   },
   {
     id: "2",
@@ -22,6 +23,7 @@ export const MOCK_HOTELS: Hotel[] = [
     rating: 4.2,
     priceFrom: 30000,
     isVerified: false,
+    roomsAvailable: 9,
   },
   {
     id: "3",
@@ -33,5 +35,6 @@ export const MOCK_HOTELS: Hotel[] = [
     rating: 3.5,
     priceFrom: 15000,
     isVerified: true, // Will rank higher due to weights even if rating is lower
+    roomsAvailable: 6,
   },
 ];

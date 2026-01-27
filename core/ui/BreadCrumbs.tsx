@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Breadcrumb } from "../navigation/breadcrumb";
 
+
 type Props = {
   items: Breadcrumb[];
 };

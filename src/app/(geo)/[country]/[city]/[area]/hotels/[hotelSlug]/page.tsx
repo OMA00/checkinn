@@ -6,6 +6,7 @@ import { scoreHotel } from "../../../../../../../../core/intelligence/scoreHotel
 import { checkAvailability } from "../../../../../../../../core/services/checkAvailability";
 import { Breadcrumbs } from "../../../../../../../../core/ui/BreadCrumbs";
 import { BuildBreadCrumb } from "../../../../../../../../core/navigation/buildBreadCrumb";
+import { checkAvailabilityForIntent } from "../../../../../../../../core/services/checkAvailabilityForIntent";
 
 // 1️⃣ In Next.js 15, params is a Promise
 type Props = {

@@ -10,4 +10,5 @@ export type Hotel = {
 
   images?: string[];
   isVerified: boolean;
+  roomsAvailable: number;
 };
