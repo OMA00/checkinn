@@ -8,6 +8,8 @@ import { PriceQuote } from "../../../../../../../../core/domain/priceQuote";
 import { checkAvailabilityForIntent } from "../../../../../../../../core/services/checkAvailabilityForIntent";
 import { createHold } from "../../../../../../../../core/services/createHold";
 import { calculatePriceQuote } from "../../../../../../../../core/services/calculatePriceQuote";
+import { CreateBooking } from "../../../../../../../../core/services/createBooking";
+import { CreatePaymentIntent } from "../../../../../../../../core/services/createPaymentIntent";
 
 export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
   const [message, setMessage] = useState<string | null>(null);
@@ -56,6 +58,18 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
     setMessage(
       `Rooms held! Total: ${priceQuote.currency} ₦${priceQuote.total.toLocaleString()}`,
     );
+
+    const booking = CreateBooking({
+      intent,
+      hold,
+      quote: priceQuote,
+    });
+
+    const paymentIntent = CreatePaymentIntent(booking);
+
+    setMessage(
+      `Booking created. Ref: ${booking.bookingId}. Complete payment to confirm.`,
+    );
   }
 
   return (
@@ -70,6 +84,10 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
           {quote && (
             <p className="text-gray-500 mt-1">Quote ID: {quote.quoteId}</p>
           )}
+
+          <p className="mt-2 text-sm text-gray-600">
+            Payment required to confirm booking.
+          </p>
         </div>
       )}
     </form>
