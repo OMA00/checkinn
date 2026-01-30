@@ -10,12 +10,14 @@ import { createHold } from "../../../../../../../../core/services/createHold";
 import { calculatePriceQuote } from "../../../../../../../../core/services/calculatePriceQuote";
 import { CreateBooking } from "../../../../../../../../core/services/createBooking";
 import { CreatePaymentIntent } from "../../../../../../../../core/services/createPaymentIntent";
+import { getPaymentProvider } from "../../../../../../../../core/payments/getPaymentProvider";
+import { executePaymemnts } from "../../../../../../../../core/services/executePayment";
 
 export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
   const [message, setMessage] = useState<string | null>(null);
   const [quote, setQuote] = useState<PriceQuote | null>(null);
 
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const bookingIntentId = uuid();
@@ -70,6 +72,18 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
     setMessage(
       `Booking created. Ref: ${booking.bookingId}. Complete payment to confirm.`,
     );
+
+    const provider = getPaymentProvider("paystack");
+    const init = await provider.initializePayment(paymentIntent);
+
+    const { paymentUrl } = await executePayment({
+      paymentIntent,
+      provider: "paystack",
+    });
+
+    if (paymentUrl) {
+      window.location.href = paymentUrl;
+    }
   }
 
   return (

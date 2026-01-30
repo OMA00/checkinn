@@ -57,7 +57,7 @@ export default async function CountryPage({ params }: Props) {
               Lagos
             </h3>
             <p className="text-sm text-slate-500">
-              Explore the best hotels in Nigeria's commercial capital.
+              Explore the best hotels in {displayCountry} commercial capital.
             </p>
           </a>
         </div>
