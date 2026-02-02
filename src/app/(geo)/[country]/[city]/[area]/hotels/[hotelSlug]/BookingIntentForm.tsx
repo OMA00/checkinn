@@ -12,6 +12,7 @@ import { CreateBooking } from "../../../../../../../../core/services/createBooki
 import { CreatePaymentIntent } from "../../../../../../../../core/services/createPaymentIntent";
 import { getPaymentProvider } from "../../../../../../../../core/payments/getPaymentProvider";
 import { executePaymemnts } from "../../../../../../../../core/services/executePayment";
+import { finalizePayment } from "../../../../../../../../core/services/finalizePayment";
 
 export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
   const [message, setMessage] = useState<string | null>(null);

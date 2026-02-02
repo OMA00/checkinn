@@ -12,4 +12,13 @@ export async function executePaymemnts(params: {
     provider: params.provider,
     status: "PROCESSING",
   };
+
+  // intialize payment with Provider
+  const init = await providerAdapter.initializePayment(processingIntent);
+
+  return {
+    updatedPaymentIntent: processingIntent,
+    providerPaymentId: init.paymentProviderId,
+    paymentUrl: init.paymentUrl, // may exist
+  };
 }

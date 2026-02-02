@@ -22,7 +22,7 @@ export const MOCK_HOTELS: Hotel[] = [
     area: "ikeja",
     rating: 4.2,
     priceFrom: 30000,
-    isVerified: false,
+    isVerified: true,
     roomsAvailable: 9,
   },
   {

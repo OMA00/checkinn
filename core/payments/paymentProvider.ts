@@ -7,6 +7,7 @@ export interface PaymentProvider {
     paymentProviderId: string;
     paymentUrl?: string;
   }>;
+
   verifyPayment(paymentProviderId: string): Promise<{
     success: boolean;
     rawStatus: string;

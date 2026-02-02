@@ -1,7 +1,7 @@
 import { Hotel } from "../domain/hotel";
 import { HOTEL_WEIGHTS } from "./weights";
 
-export function scoreHotel(hotel: Hotel): number {
+export function scoreHotel(hotel: Hotel): Hotel & { score: number } {
   let score = 0;
 
   if (hotel.isVerified) {
@@ -17,5 +17,5 @@ export function scoreHotel(hotel: Hotel): number {
     score +=
       Math.max(0, 100000 - hotel.priceFrom) / HOTEL_WEIGHTS.priceAffordability;
   }
-  return Math.round(score);
+  return { ...hotel, score: Math.round(score) };
 }

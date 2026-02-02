@@ -3,6 +3,7 @@ import { Hotel } from "../../domain/hotel";
 
 type HotelCardProps = {
   hotel: Hotel;
+  baseUrl: string
 };
 
 export function HotelCard({ hotel }: HotelCardProps) {
