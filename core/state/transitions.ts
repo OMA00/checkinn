@@ -1,9 +1,10 @@
-import { BookingState } from "./bookingStates";
+import { BookingStatus } from "./bookingStates";
 
-export const BookingTransitions: Record<BookingState, BookingState[]> = {
-    AVAILABLE :["HELD"],
-    HELD : ["CONFIRMED","EXPIRED"],
-    CONFIRMED: ["CANCELLED"],
-    CANCELLED: [],
-    EXPIRED: [],
-}
+export const BookingTransitions: Record<BookingStatus, BookingStatus[]> = {
+  INTENT_CREATED: ["ROOMS_HELD", "CANCELLED"],
+  ROOMS_HELD: ["PAYMENT_PENDING", "EXPIRED"],
+  PAYMENT_PENDING: ["CONFIRMED", "CANCELLED"],
+  CONFIRMED: [],
+  CANCELLED: [],
+  EXPIRED: [],
+};

@@ -1,30 +1,24 @@
 import { BookingIntent } from "../domain/bookingIntent";
-import { AvailabilityResult } from "../domain/availability";
 import { Hotel } from "../domain/hotel";
+import { BookingError } from "../domain/error";
+import { Result } from "../domain/result";
 
-export function checkAvailabilityForIntent(
-  intent: BookingIntent,
-  hotel: Hotel,
-): AvailabilityResult {
-  // Guard 1: hotel must be verified
-  if (!hotel.isVerified) {
-    return { status: "UNAVAILABLE", reason: "NOT_VERIFIED" };
+export function CheckAvailabilityForIntent({
+  intent,
+  hotel,
+}: {
+  intent: BookingIntent;
+  hotel: Hotel;
+}): Result<"AVAILABLE", BookingError> {
+  if (hotel.roomsAvailable < intent.rooms) {
+    return {
+      ok: false,
+      error: {
+        type: "HOTEL_FULL",
+        hotelId: hotel.id,
+      },
+    };
   }
 
-  // Guard 2: mock room availability
-  const roomsAvailable = hotel.roomsAvailable ?? 0;
-
-  if (roomsAvailable < intent.rooms) {
-    return { status: "UNAVAILABLE", reason: "NO_ROOMS" };
-  }
-
-  //Guard 3: Mock date sanity(placeholder)
-  if (intent.checkInDate >= intent.checkOutDate) {
-    return { status: "UNAVAILABLE", reason: "OUT_OF_DATES" };
-  }
-
-  return {
-    status: "AVAILABLE",
-    roomsAvailable,
-  };
+  return { ok: true, value: "AVAILABLE" };
 }

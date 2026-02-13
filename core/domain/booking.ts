@@ -1,8 +1,5 @@
-export type BookingStatus =
-  | "PENDING_PAYMENT"
-  | "CONFIRMED"
-  | "CANCELLED"
-  | "EXPIRED";
+import { BookingStatus } from "../state/bookingStates";
+import { BookingTimeline } from "./bookingTimeline";
 
 export type Booking = {
   bookingId: string; // UUID
@@ -18,5 +15,7 @@ export type Booking = {
   currency: "NGN";
   totalAmount: number;
   status: BookingStatus;
+  timeline: BookingTimeline;
   createdAt: string;
+  updatedAt: string;
 };

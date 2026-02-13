@@ -9,6 +9,8 @@ export function CreateBooking(params: {
   hold: Hold;
   quote: PriceQuote;
 }): Booking {
+  const now = new Date().toISOString();
+
   return {
     bookingId: uuidv4(),
     bookingIntentId: params.intent.bookingIntentId,
@@ -20,10 +22,24 @@ export function CreateBooking(params: {
     checkOutDate: params.intent.checkOutDate,
     guests: params.intent.guests,
     rooms: params.intent.rooms,
-    currency: params.quote.currency,
+
+    // 1. Force the type if the quote currency is a general string
+    currency: params.quote.currency as "NGN",
+
     totalAmount: params.quote.total,
 
-    status: "PENDING_PAYMENT",
-    createdAt: new Date().toISOString(),
+    // 2. YOU WERE MISSING THIS:
+    status: "PAYMENT_PENDING",
+
+    timeline: [
+      {
+        status: "PAYMENT_PENDING",
+        at: now,
+        reason: "Booking created from intent, hold and price quote",
+      },
+    ],
+
+    createdAt: now,
+    updatedAt: now,
   };
 }

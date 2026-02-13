@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { Breadcrumb } from "../navigation/breadcrumb";
-
+import { BreadCrumb } from "../navigation/breadcrumb";
 
 type Props = {
-  items: Breadcrumb[];
+  items: BreadCrumb[];
 };
 
 export function Breadcrumbs({ items }: Props) {

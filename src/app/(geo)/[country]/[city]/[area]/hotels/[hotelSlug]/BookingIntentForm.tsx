@@ -5,14 +5,14 @@ import { v4 as uuid } from "uuid";
 import { BookingIntent } from "../../../../../../../../core/domain/bookingIntent";
 import { Hotel } from "../../../../../../../../core/domain/hotel";
 import { PriceQuote } from "../../../../../../../../core/domain/priceQuote";
-import { checkAvailabilityForIntent } from "../../../../../../../../core/services/checkAvailabilityForIntent";
+import { CheckAvailabilityForIntent } from "../../../../../../../../core/services/checkAvailabilityForIntent";
 import { createHold } from "../../../../../../../../core/services/createHold";
 import { calculatePriceQuote } from "../../../../../../../../core/services/calculatePriceQuote";
 import { CreateBooking } from "../../../../../../../../core/services/createBooking";
 import { CreatePaymentIntent } from "../../../../../../../../core/services/createPaymentIntent";
 import { getPaymentProvider } from "../../../../../../../../core/payments/getPaymentProvider";
-import { executePaymemnts } from "../../../../../../../../core/services/executePayment";
-import { finalizePayment } from "../../../../../../../../core/services/finalizePayment";
+import { executePayments } from "../../../../../../../../core/services/executePayment";
+import { FinalizePayment } from "../../../../../../../../core/services/finalizePayment";
 
 export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
   const [message, setMessage] = useState<string | null>(null);
@@ -36,9 +36,12 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
     };
 
     // 2️⃣ Intelligence
-    const availability = checkAvailabilityForIntent(intent, hotel);
-    if (availability.status !== "AVAILABLE") {
-      setMessage(`Unavailable: ${availability.reason}`);
+    const availability = CheckAvailabilityForIntent({
+      intent: intent,
+      hotel: hotel,
+    });
+    if (!availability.ok) {
+      setMessage(`Unavailable: ${availability.error.type}`);
       return;
     }
 
@@ -54,7 +57,7 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
     const priceQuote = calculatePriceQuote({
       intent,
       hotel,
-      holdExpiresAt: hold.expiresAt,
+      hotelExpiresAt: hold.expiresAt,
     });
 
     setQuote(priceQuote);
@@ -77,7 +80,7 @@ export function BookingIntentForm({ hotel }: { hotel: Hotel }) {
     const provider = getPaymentProvider("paystack");
     const init = await provider.initializePayment(paymentIntent);
 
-    const { paymentUrl } = await executePayment({
+    const { paymentUrl } = await executePayments({
       paymentIntent,
       provider: "paystack",
     });
