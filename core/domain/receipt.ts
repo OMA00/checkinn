@@ -9,4 +9,5 @@ export type Receipt = {
   currency: "NGN";
 
   issuedAt: string;
+  providerReference: string;
 };

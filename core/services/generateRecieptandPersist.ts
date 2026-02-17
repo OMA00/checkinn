@@ -7,6 +7,7 @@ export async function GenerateReceiptAndPersist(params: {
   receiptRepository: ReceiptRepository;
   hotelName: string;
   location: string;
+  providerReference: string;
 }) {
   const existing = await params.receiptRepository.findByBookingId(
     params.booking.bookingId,
@@ -20,6 +21,7 @@ export async function GenerateReceiptAndPersist(params: {
     booking: params.booking,
     hotelName: params.hotelName,
     location: params.location,
+    providerReference: params.providerReference,
   });
 
   await params.receiptRepository.create(receipt);

@@ -6,56 +6,66 @@ import { BookingRepository } from "../repositories/bookingRepository";
 import { PaymentIntentRepository } from "../repositories/paymentIntentRepository";
 import { ReceiptRepository } from "../repositories/receiptRepository";
 import { ProjectBookingToReadModel } from "./readModels/bookingReadModels";
-import { DomainEvent } from "../domain/events/domainEvent";
+import { GenerateReceipt } from "./generateReceipt";
 
-export async function FinalizePaymentFlowAndPersists(params: {
+export async function FinalizePaymentFlowAndPersist(params: {
   booking: Booking;
   paymentIntent: PaymentIntent;
   paymentProviderId: string;
   bookingRepository: BookingRepository;
   paymentIntentRepository: PaymentIntentRepository;
-  receiptRepository: ReceiptRepository;
+  receiptRepository: ReceiptRepository; // 👈 Dependency Injected
 }) {
-  // 1. VERIFY: Talk to the external provider (Flutterwave/Paystack)
+  // 1. VERIFY: External handshake with the payment gateway
   const verification = await verifyPayment({
     paymentIntent: params.paymentIntent,
     paymentProviderId: params.paymentProviderId,
   });
 
-  // 2. LOGIC: Decide new state based on verification (The "Pure" step)
+  // 2. LOGIC: The "Brain" decides the new state.
+  // We get back a 'Result' envelope containing { data, events }
   const result = FinalizePayment({
     booking: params.booking,
     paymentIntent: params.paymentIntent,
     verified: verification.verified,
   });
 
-  // 3. PERSIST: Save the updated Booking and PaymentIntent to memory/DB
-  await params.bookingRepository.update(result.booking);
-  await params.paymentIntentRepository.update(result.paymentIntent);
+  // 3. PERSIST: Save the updated core entities using .data wrapper
+  // We "unpack" the result box to save the specific objects
+  await params.bookingRepository.update(result.data.booking);
+  await params.paymentIntentRepository.update(result.data.paymentIntent);
 
-  // 4 . Read model later store in cache,search UI feed.
-  const readModel = ProjectBookingToReadModel(result.booking);
+  // 4. RECEIPT LOGIC: Creating the financial paper trail
+  // We only create a receipt if the logic actually confirmed the booking
+  if (result.data.booking.status === "CONFIRMED") {
+    // GUARD CHECK WE HAVE A RECEIPT FOR THIS BOOKING
+    const existingReceipt = await params.receiptRepository.findByBookingId(
+      result.data.booking.bookingId,
+    );
 
-  // 5. SIDE EFFECT: If successful, create and save the receipt
-  const Events: DomainEvent<string, any>[] = [];
-  if (result.booking.status === "CONFIRMED") {
-    Events.push({
-      type: "BOOKING_CONFIRMED",
-      occuredAt: new Date().toISOString(),
-      payload: {
-        bookingId: result.booking.bookingId,
-        hotelId: result.booking.hotelId,
-        totalAmount: result.booking.totalAmount,
-        currency: result.booking.currency,
-      },
-    });
+    if (!existingReceipt) {
+      // 2. Generate the object
+      const receipt = GenerateReceipt({
+        booking: result.data.booking,
+        hotelName: "Grand Oasis",
+        location: "Lagos, Nigeria",
+        providerReference: params.paymentProviderId,
+      });
+
+      // 3. FIX: Pass 'receipt' directly, NOT '{receipt}'
+      await params.receiptRepository.create(receipt);
+    }
   }
 
-  // 6. RETURN: Give the API handler the final state
+  // 4. READ MODEL: Syncing the search/UI view with the new state
+  const readModel = ProjectBookingToReadModel(result.data.booking);
+
+  // 5. RETURN: Pass everything back to the Webhook
+  // We include the events generated in Step 2 so they can be dispatched
   return {
-    booking: result.booking,
-    paymentIntent: result.paymentIntent,
+    booking: result.data.booking,
+    paymentIntent: result.data.paymentIntent,
     verified: verification.verified,
-    event: Events,
+    events: result.events, // 👈 Passing the "News" up the chain
   };
 }
