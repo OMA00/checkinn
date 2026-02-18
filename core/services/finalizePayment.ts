@@ -20,9 +20,13 @@ export function FinalizePayment(params: {
 }> {
   // 1. Initialize the events array
   const events: BookingConfirmedEvent[] = [];
+  const now = new Date().toISOString();
 
   // 2. IDEMPOTENCY GUARD: If already confirmed, do nothing.
-  if (params.booking.status === "CONFIRMED") {
+  if (
+    params.booking.status === "CONFIRMED" ||
+    params.booking.status === "PAYMENT_FAILED"
+  ) {
     return {
       data: {
         booking: params.booking,
@@ -46,10 +50,17 @@ export function FinalizePayment(params: {
     params.booking.status = "CONFIRMED";
     params.paymentIntent.status = "SUCCEEDED";
 
+    // Push TO TimeLine Clean Append
+    params.booking.timeline.push({
+      status: "CONFIRMED",
+      at: now,
+      reason: "Payment verified successfully via provide webhook",
+    });
+
     // Create the Success Event
     events.push({
       type: "BOOKING_CONFIRMED",
-      occurredAt: new Date().toISOString(),
+      occurredAt: now,
       payload: {
         bookingId: params.booking.bookingId,
         hotelId: params.booking.hotelId,
@@ -69,7 +80,11 @@ export function FinalizePayment(params: {
     params.booking.status = "PAYMENT_FAILED";
     params.paymentIntent.status = "FAILED";
 
-    // Note: You can add a BOOKING_FAILED event here later if needed
+    params.booking.timeline.push({
+      status: "PAYMENT_FAILED",
+      at: now,
+      reason: "Payment verification failed",
+    });
   }
 
   // 4. THE RETURN HANDSHAKE

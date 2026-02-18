@@ -3,6 +3,7 @@ import { DispatchEvent } from "../../../core/domain/events/dispatchEvents";
 
 import { FinalizePayment } from "../../../core/services/finalizePayment";
 import { FinalizeAndPersistPayments } from "../../../core/services/finalizeAndPersistPayment";
+import { ProjectBookingToReadModel } from "../../../core/services/readModels/projectBookingToReadModel";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -47,8 +48,6 @@ export async function POST(req: Request) {
     await DispatchEvent(event, handlers);
   }
 
-  return Response.json({
-    bookingId: persisted.data.booking.bookingId,
-    status: persisted.data.booking.status,
-  });
+  const readModel = ProjectBookingToReadModel(result.data.booking);
+  return Response.json(readModel);
 }
