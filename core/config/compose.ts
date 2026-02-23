@@ -4,6 +4,7 @@ import { InMemoryPaymentIntentRepository } from "./../repositories/inMemory/inMe
 import { InMemoryReceiptRepository } from "../repositories/inMemory/inMemoryReceiptRepository";
 import { SendBookingConfirmationHandler } from "../domain/events/handlers/sendBookingConfirmation";
 import { MOCK_HOTELS } from "../domain/mockHotels";
+import { InMemoryHoldRepository } from "../repositories/inMemory/inMemoryHoldRepository";
 
 const BookingConfirmedHadlers = [new SendBookingConfirmationHandler()];
 
@@ -12,12 +13,14 @@ export function ComposeApp() {
   const bookingRepository = new InMemoryBookingRepository();
   const paymentIntentRepository = new InMemoryPaymentIntentRepository();
   const receiptRepository = new InMemoryReceiptRepository();
+  const holdRepository = new InMemoryHoldRepository();
 
   return {
     repositories: {
       hotelRepository,
       bookingRepository,
       paymentIntentRepository,
+      holdRepository,
       receiptRepository,
     },
     eventHandlers: {

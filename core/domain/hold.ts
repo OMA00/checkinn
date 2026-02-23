@@ -5,4 +5,5 @@ export type Hold = {
   roomsHeld: number;
   state: "HELD" | "EXPIRED";
   expiresAt: number; // epoch ms
+  bookingId?: string;
 };
